@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="filters" method="get" action="/">
+  <label>State:
+    <input name="state" value="{{ state or '' }}" placeholder="e.g. CA" style="width:5rem">
+  </label>
+  <label>Interest:
+    <select name="interest_level">
+      <option value="">All</option>
+      <option value="unreviewed" {% if interest_level == 'unreviewed' %}selected{% endif %}>Unreviewed</option>
+      <option value="not_interested" {% if interest_level == 'not_interested' %}selected{% endif %}>Not interested (0)</option>
+      <option value="interested" {% if interest_level == 'interested' %}selected{% endif %}>Interested (1+)</option>
+    </select>
+  </label>
+  <button type="submit">Filter</button>
+  <a href="/">Clear</a>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>Company</th>
+      <th>State</th>
+      <th>City</th>
+      <th>Form</th>
+      <th>Filed</th>
+      <th>Offering ($)</th>
+      <th>Interest</th>
+      <th>Mark</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for co in companies %}
+    <tr>
+      <td><a href="/companies/{{ co.cik }}">{{ co.name }}</a></td>
+      <td>{{ co.state or '—' }}</td>
+      <td>{{ co.city or '—' }}</td>
+      <td>{{ co.form_type }}</td>
+      <td>{{ co.filed_date }}</td>
+      <td>{{ "${:,.0f}".format(co.offering_amount) if co.offering_amount else '—' }}</td>
+      <td>
+        {% if co.interest_level is not none %}
+          <span class="badge level-{{ co.interest_level }}">{{ co.interest_level }}</span>
+        {% endif %}
+      </td>
+      <td>
+        <form class="action-form" method="post" action="/companies/{{ co.cik }}/annotate">
+          <select name="interest_level">
+            {% for lvl in [0, 1, 2, 3] %}
+              <option value="{{ lvl }}" {% if co.interest_level == lvl %}selected{% endif %}>{{ lvl }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Save</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" style="text-align:center;color:#888">No companies found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
