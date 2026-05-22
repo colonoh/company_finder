@@ -106,7 +106,7 @@ Tracks which quarters have been imported. Used to skip already-completed quarter
 
 ### `scheduler.py` — APScheduler
 Two jobs:
-- **`historical_import`**: runs once on first startup. Iterates over all quarters from 5 years ago to the most recently completed quarter. Skips any quarter already marked `completed` in `import_runs`.
+- **`historical_import`**: runs once on first startup. Iterates over the 20 quarters ending at the most recently completed quarter (i.e., approximately 5 years back from the date of first run). Skips any quarter already marked `completed` in `import_runs`.
 - **`quarterly_import`**: runs on the 5th day of January, April, July, and October (allowing a few days for EDGAR to publish the prior quarter's index). Processes the just-completed quarter.
 
 ### `db.py` — Database
@@ -119,7 +119,7 @@ FastAPI with Jinja2 templates. Three routes:
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/` | Company list. Accepts query params: `state`, `interest_level`. Joins `companies` + `user_annotations`. |
+| `GET` | `/` | Company list. Accepts query params: `state`, `interest_level`. LEFT JOINs `companies`, `user_annotations`, and `company_enrichment` (enrichment columns will be NULL until enrichment runs). |
 | `POST` | `/companies/{cik}/annotate` | Save interest level. Upserts into `user_annotations`. Redirects to `/`. |
 | `GET` | `/companies/{cik}` | Company detail. Joins all four tables. |
 
