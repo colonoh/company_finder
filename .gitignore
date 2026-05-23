@@ -1,4 +1,6 @@
 data/*.db
+data/*.db-*
+data/backups/
 .env
 __pycache__/
 *.pyc

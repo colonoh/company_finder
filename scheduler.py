@@ -1,10 +1,16 @@
 import logging
 import os
+import sqlite3
+import time
+from datetime import date, timedelta
+from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import db
 import importer
+
+BACKUP_RETENTION_DAYS = 7
 
 logger = logging.getLogger(__name__)
 _scheduler = BackgroundScheduler()
@@ -47,6 +53,39 @@ def _run_quarterly_import() -> None:
         logger.error("Quarterly import %s failed: %s", quarter, e)
 
 
+def _run_backup() -> None:
+    src_path = _db_path()
+    backup_dir = Path(src_path).parent / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    dest = backup_dir / f"companies.{date.today().isoformat()}.db"
+    tmp = dest.with_suffix(".db.tmp")
+    try:
+        src = sqlite3.connect(src_path, timeout=30)
+        try:
+            dst = sqlite3.connect(str(tmp))
+            try:
+                src.backup(dst)
+            finally:
+                dst.close()
+        finally:
+            src.close()
+        os.replace(tmp, dest)
+        logger.info("Backup written to %s", dest)
+        _prune_backups(backup_dir)
+    except Exception as e:
+        logger.error("Backup failed: %s", e)
+        if tmp.exists():
+            tmp.unlink(missing_ok=True)
+
+
+def _prune_backups(backup_dir: Path) -> None:
+    cutoff = time.time() - BACKUP_RETENTION_DAYS * 86400
+    for f in backup_dir.glob("companies.*.db"):
+        if f.stat().st_mtime < cutoff:
+            f.unlink(missing_ok=True)
+            logger.info("Pruned old backup %s", f)
+
+
 def start_scheduler() -> None:
     db.init_db(_db_path())
     if os.getenv("TESTING"):
@@ -61,6 +100,7 @@ def start_scheduler() -> None:
         hour=2,
         minute=0,
     )
+    _scheduler.add_job(_run_backup, "cron", hour=3, minute=0)
     _scheduler.start()
     logger.info("Scheduler started")
 
