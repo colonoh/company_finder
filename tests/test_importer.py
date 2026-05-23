@@ -27,12 +27,12 @@ def test_get_quarters_in_range_oldest_first_when_reversed():
 
 
 SAMPLE_FORM_IDX = """\
-Company Name                                                   Form Type   CIK         Date Filed  Filename
-------------------------------------------------------------------------------------------------------------------------------------------------
-ACME STARTUP INC                                               D           0001234567  2024-01-15  edgar/data/1234567/0001234567-24-000001-index.htm
-BIG FUND LP                                                    D/A         0009876543  2024-01-16  edgar/data/9876543/0009876543-24-000002-index.htm
-SOME PUBLIC CO                                                 10-K        0001111111  2024-01-17  edgar/data/1111111/0001111111-24-000003-index.htm
-CROWD CORP                                                     C           0002222222  2024-01-18  edgar/data/2222222/0002222222-24-000004-index.htm
+Form Type   Company Name                                                  CIK         Date Filed  File Name
+---------------------------------------------------------------------------------------------------------------------------------------------
+D           ACME STARTUP INC                                              0001234567  2024-01-15  edgar/data/1234567/0001234567-24-000001-index.htm
+D/A         BIG FUND LP                                                   0009876543  2024-01-16  edgar/data/9876543/0009876543-24-000002-index.htm
+10-K        SOME PUBLIC CO                                                0001111111  2024-01-17  edgar/data/1111111/0001111111-24-000003-index.htm
+C           CROWD CORP                                                    0002222222  2024-01-18  edgar/data/2222222/0002222222-24-000004-index.htm
 """
 
 
@@ -149,9 +149,9 @@ def _make_mock_client(idx_text: str, xml_text: str) -> MagicMock:
 
 
 IDX_ONE_FILING = """\
-Company Name                                                   Form Type   CIK         Date Filed  Filename
-------------------------------------------------------------------------------------------------------------------------------------------------
-ACME STARTUP INC                                               D           0001234567  2024-01-15  edgar/data/1234567/0001234567-24-000001-index.htm
+Form Type   Company Name                                                  CIK         Date Filed  File Name
+---------------------------------------------------------------------------------------------------------------------------------------------
+D           ACME STARTUP INC                                              0001234567  2024-01-15  edgar/data/1234567/0001234567-24-000001-index.htm
 """
 
 XML_ONE_FILING = """\
@@ -210,7 +210,7 @@ def test_import_quarter_skips_bad_xml(tmp_path):
     idx_two = IDX_ONE_FILING.replace(
         "0001234567-24-000001-index.htm",
         "0001234567-24-000001-index.htm\n"
-        "BAD XML CORP                                                   D           0009999999  2024-01-16  edgar/data/9999999/0009999999-24-000001-index.htm",
+        "D           BAD XML CORP                                                  0009999999  2024-01-16  edgar/data/9999999/0009999999-24-000001-index.htm",
     )
     mock_bad_xml = MagicMock()
     mock_bad_xml.raise_for_status = MagicMock()

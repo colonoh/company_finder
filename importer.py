@@ -39,7 +39,7 @@ def parse_form_idx(content: str) -> list[dict]:
     header_line = None
     data_start = 0
     for i, line in enumerate(lines):
-        if "Form Type" in line and "CIK" in line and "Filename" in line:
+        if "Form Type" in line and "CIK" in line and "Date Filed" in line:
             header_line = line
             data_start = i + 2  # skip header + separator line
             break
@@ -47,19 +47,20 @@ def parse_form_idx(content: str) -> list[dict]:
         return []
 
     col_form = header_line.index("Form Type")
+    col_company = header_line.index("Company Name")
     col_cik = header_line.index("CIK")
     col_date = header_line.index("Date Filed")
-    col_file = header_line.index("Filename")
+    col_file = header_line.index("File Name")
 
     results = []
     for line in lines[data_start:]:
         if not line.strip():
             continue
-        form_type = line[col_form:col_cik].strip()
+        form_type = line[col_form:col_company].strip()
         if form_type not in ("D", "D/A", "C"):
             continue
         results.append({
-            "company_name": line[:col_form].strip(),
+            "company_name": line[col_company:col_cik].strip(),
             "form_type": form_type,
             "cik": line[col_cik:col_date].strip(),
             "filed_date": line[col_date:col_file].strip(),
