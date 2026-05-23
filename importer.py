@@ -90,6 +90,13 @@ def _text(root: ET.Element, path: str) -> str | None:
     return el.text.strip() if el is not None and el.text else None
 
 
+def _to_float(value: str | None) -> float | None:
+    try:
+        return float(value) if value else None
+    except ValueError:
+        return None
+
+
 def parse_form_d_xml(xml_content: str) -> dict | None:
     try:
         root = ET.fromstring(xml_content)
@@ -104,7 +111,7 @@ def parse_form_d_xml(xml_content: str) -> dict | None:
         "city": _text(root, ".//primaryIssuer/issuerAddress/city"),
         "state": _text(root, ".//primaryIssuer/issuerAddress/stateOrCountry"),
         "zip": _text(root, ".//primaryIssuer/issuerAddress/zipCode"),
-        "offering_amount": float(amount_text) if amount_text else None,
+        "offering_amount": _to_float(amount_text),
         "date_of_first_sale": _text(root, ".//typeOfFiling/dateOfFirstSale/value"),
     }
 
@@ -122,14 +129,13 @@ def parse_form_c_xml(xml_content: str) -> dict | None:
 
     fc = f"{{{_FORMC_NS}}}"
     com = f"{{{_COM_NS}}}"
-    amount_text = _text(root, f".//{fc}totalAmountSold")
     return {
         "name": _text(root, f".//{fc}nameOfIssuer"),
         "street1": _text(root, f".//{com}street1"),
         "city": _text(root, f".//{com}city"),
         "state": _text(root, f".//{com}stateOrCountry"),
         "zip": _text(root, f".//{com}zipCode"),
-        "offering_amount": float(amount_text) if amount_text else None,
+        "offering_amount": _to_float(_text(root, f".//{fc}totalAmountSold")),
         "date_of_first_sale": _text(root, f".//{fc}dateFirstSale"),
     }
 
