@@ -70,14 +70,14 @@ def parse_form_idx(content: str) -> list[dict]:
 
 
 def index_filename_to_xml_url(filename: str) -> str:
-    # edgar/data/{cik}/{accession}-index.htm
+    # edgar/data/{cik}/{accession}-index.htm  (newer)
+    # edgar/data/{cik}/{accession}.txt        (older)
     # → https://www.sec.gov/Archives/edgar/data/{cik}/{accession_nodashes}/{accession}.xml
-    without_index = filename.replace("-index.htm", "")
-    parts = without_index.split("/")
+    parts = filename.split("/")
     cik = parts[2]
-    accession = parts[3]
-    accession_nodashes = accession.replace("-", "")
-    return f"{EDGAR_BASE}/Archives/edgar/data/{cik}/{accession_nodashes}/{accession}.xml"
+    raw = parts[3].replace("-index.htm", "").replace(".txt", "")
+    accession_nodashes = raw.replace("-", "")
+    return f"{EDGAR_BASE}/Archives/edgar/data/{cik}/{accession_nodashes}/{raw}.xml"
 
 
 def _text(root: ET.Element, path: str) -> str | None:

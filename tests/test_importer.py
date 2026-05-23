@@ -104,6 +104,15 @@ def test_index_filename_to_xml_url():
     )
 
 
+def test_index_filename_to_xml_url_txt():
+    filename = "edgar/data/1650200/0001062993-21-003673.txt"
+    url = index_filename_to_xml_url(filename)
+    assert url == (
+        "https://www.sec.gov/Archives/edgar/data/1650200"
+        "/000106299321003673/0001062993-21-003673.xml"
+    )
+
+
 def test_parse_form_d_xml_full():
     result = parse_form_d_xml(SAMPLE_XML)
     assert result["name"] == "ACME STARTUP INC"
