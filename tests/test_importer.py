@@ -109,7 +109,7 @@ def test_index_filename_to_xml_url_txt():
     url = index_filename_to_xml_url(filename)
     assert url == (
         "https://www.sec.gov/Archives/edgar/data/1650200"
-        "/000106299321003673/0001062993-21-003673.xml"
+        "/000106299321003673/primary_doc.xml"
     )
 
 
