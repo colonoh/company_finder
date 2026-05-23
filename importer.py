@@ -50,7 +50,6 @@ def parse_form_idx(content: str) -> list[dict]:
     col_company = header_line.index("Company Name")
     col_cik = header_line.index("CIK")
     col_date = header_line.index("Date Filed")
-    col_file = header_line.index("File Name")
 
     results = []
     for line in lines[data_start:]:
@@ -59,12 +58,15 @@ def parse_form_idx(content: str) -> list[dict]:
         form_type = line[col_form:col_company].strip()
         if form_type not in ("D", "D/A", "C"):
             continue
+        edgar_pos = line.find("edgar/")
+        if edgar_pos == -1:
+            continue
         results.append({
             "company_name": line[col_company:col_cik].strip(),
             "form_type": form_type,
             "cik": line[col_cik:col_date].strip(),
-            "filed_date": line[col_date:col_file].strip(),
-            "filename": line[col_file:].strip(),
+            "filed_date": line[col_date:edgar_pos].strip(),
+            "filename": line[edgar_pos:].strip(),
         })
     return results
 
