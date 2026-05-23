@@ -39,6 +39,22 @@ def annotate(cik: str, interest_level: int = Form(...)):
     return RedirectResponse(url="/", status_code=303)
 
 
+@app.get("/status", response_class=HTMLResponse)
+def import_status(request: Request):
+    with db.get_connection() as conn:
+        runs = conn.execute(
+            "SELECT quarter, status, filings_processed, imported_at FROM import_runs ORDER BY quarter DESC"
+        ).fetchall()
+    total_quarters = 20
+    completed = sum(1 for r in runs if r["status"] == "completed")
+    in_progress = completed < total_quarters
+    return templates.TemplateResponse(
+        request,
+        "status.html",
+        {"runs": runs, "completed": completed, "total": total_quarters, "in_progress": in_progress},
+    )
+
+
 @app.get("/companies/{cik}", response_class=HTMLResponse)
 def company_detail(request: Request, cik: str):
     with db.get_connection() as conn:

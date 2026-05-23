@@ -21,10 +21,15 @@
     a:hover { text-decoration: underline; }
     button { cursor: pointer; padding: 2px 8px; }
     .action-form { display: inline; }
+    .status-completed { color: #155724; font-weight: 600; }
+    .status-failed { color: #721c24; font-weight: 600; }
+    nav { margin-bottom: 1rem; }
+    nav a { margin-right: 1rem; }
   </style>
 </head>
 <body>
   <h1>Company Finder</h1>
+  <nav><a href="/">Companies</a><a href="/status">Import Status</a></nav>
   {% block content %}{% endblock %}
 </body>
 </html>

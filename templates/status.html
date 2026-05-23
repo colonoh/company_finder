@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Import Status</h2>
+<p>{{ completed }} of {{ total }} quarters imported
+  {% if in_progress %} — <strong>import running</strong>{% endif %}
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Quarter</th>
+      <th>Status</th>
+      <th>Filings</th>
+      <th>Imported At</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for row in runs %}
+    <tr>
+      <td>{{ row.quarter }}</td>
+      <td><span class="status-{{ row.status }}">{{ row.status }}</span></td>
+      <td>{{ row.filings_processed }}</td>
+      <td>{{ row.imported_at }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" style="text-align:center;color:#888">No imports yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
