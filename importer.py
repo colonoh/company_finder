@@ -177,6 +177,7 @@ def import_quarter(quarter: str, user_agent: str, db_path: str = None) -> int:
                             "filed_date": filing["filed_date"],
                             **parsed,
                         })
+                        conn.commit()  # release write lock between filings
                         filings_processed += 1
                         time.sleep(0.1)  # respect SEC 10 req/sec limit
                     except Exception as e:
