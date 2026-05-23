@@ -136,6 +136,43 @@ def test_parse_form_d_xml_invalid_returns_none():
     assert parse_form_d_xml("not xml at all") is None
 
 
+from importer import parse_form_c_xml
+
+SAMPLE_FORM_C_XML = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<edgarSubmission xmlns="http://www.sec.gov/edgar/formc" xmlns:com="http://www.sec.gov/edgar/common">
+  <formData>
+    <issuerInformation>
+      <issuerInfo>
+        <nameOfIssuer>Axle AI, Inc.</nameOfIssuer>
+        <issuerAddress>
+          <com:street1>38 FENWAY</com:street1>
+          <com:city>BOSTON</com:city>
+          <com:stateOrCountry>MA</com:stateOrCountry>
+          <com:zipCode>02215</com:zipCode>
+        </issuerAddress>
+      </issuerInfo>
+    </issuerInformation>
+    <offeringInformation>
+      <totalAmountSold>500000</totalAmountSold>
+      <dateFirstSale>2021-04-01</dateFirstSale>
+    </offeringInformation>
+  </formData>
+</edgarSubmission>
+"""
+
+
+def test_parse_form_c_xml():
+    result = parse_form_c_xml(SAMPLE_FORM_C_XML)
+    assert result["name"] == "Axle AI, Inc."
+    assert result["street1"] == "38 FENWAY"
+    assert result["city"] == "BOSTON"
+    assert result["state"] == "MA"
+    assert result["zip"] == "02215"
+    assert result["offering_amount"] == 500000.0
+    assert result["date_of_first_sale"] == "2021-04-01"
+
+
 import db
 from unittest.mock import patch, MagicMock
 from importer import import_quarter

@@ -109,6 +109,31 @@ def parse_form_d_xml(xml_content: str) -> dict | None:
     }
 
 
+_FORMC_NS = "http://www.sec.gov/edgar/formc"
+_COM_NS = "http://www.sec.gov/edgar/common"
+
+
+def parse_form_c_xml(xml_content: str) -> dict | None:
+    try:
+        root = ET.fromstring(xml_content)
+    except ET.ParseError as e:
+        logger.warning("XML parse error: %s", e)
+        return None
+
+    fc = f"{{{_FORMC_NS}}}"
+    com = f"{{{_COM_NS}}}"
+    amount_text = _text(root, f".//{fc}totalAmountSold")
+    return {
+        "name": _text(root, f".//{fc}nameOfIssuer"),
+        "street1": _text(root, f".//{com}street1"),
+        "city": _text(root, f".//{com}city"),
+        "state": _text(root, f".//{com}stateOrCountry"),
+        "zip": _text(root, f".//{com}zipCode"),
+        "offering_amount": float(amount_text) if amount_text else None,
+        "date_of_first_sale": _text(root, f".//{fc}dateFirstSale"),
+    }
+
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def _fetch(client: httpx.Client, url: str) -> httpx.Response:
     response = client.get(url)
@@ -134,8 +159,11 @@ def import_quarter(quarter: str, user_agent: str, db_path: str = None) -> int:
                     xml_url = index_filename_to_xml_url(filing["filename"])
                     try:
                         xml_resp = _fetch(client, xml_url)
-                        parsed = parse_form_d_xml(xml_resp.text)
-                        if parsed is None:
+                        if filing["form_type"] == "C":
+                            parsed = parse_form_c_xml(xml_resp.text)
+                        else:
+                            parsed = parse_form_d_xml(xml_resp.text)
+                        if parsed is None or parsed.get("name") is None:
                             continue
                         db.upsert_company(conn, {
                             "cik": filing["cik"],
