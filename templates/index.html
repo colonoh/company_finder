@@ -59,4 +59,23 @@
   {% endfor %}
   </tbody>
 </table>
+
+{% set qs = [] %}
+{% if state %}{% set _ = qs.append('state=' ~ state) %}{% endif %}
+{% if interest_level %}{% set _ = qs.append('interest_level=' ~ interest_level) %}{% endif %}
+{% set base = '&'.join(qs) %}
+{% set sep = '&' if base else '' %}
+<nav class="pagination" style="margin-top:1rem;display:flex;gap:1rem;align-items:center">
+  {% if page > 1 %}
+    <a href="?{{ base }}{{ sep }}page={{ page - 1 }}">&laquo; Prev</a>
+  {% else %}
+    <span style="color:#bbb">&laquo; Prev</span>
+  {% endif %}
+  <span>Page {{ page }} of {{ total_pages }} ({{ total }} companies)</span>
+  {% if page < total_pages %}
+    <a href="?{{ base }}{{ sep }}page={{ page + 1 }}">Next &raquo;</a>
+  {% else %}
+    <span style="color:#bbb">Next &raquo;</span>
+  {% endif %}
+</nav>
 {% endblock %}

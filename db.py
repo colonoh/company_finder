@@ -109,9 +109,29 @@ def get_company(conn: sqlite3.Connection, cik: str):
     """, (cik,)).fetchone()
 
 
-def get_companies(conn: sqlite3.Connection, state: str = None, interest_level: str = None) -> list:
-    query = """
-        SELECT c.*, ua.interest_level, ua.notes
+def get_companies(
+    conn: sqlite3.Connection,
+    state: str = None,
+    interest_level: str = None,
+    limit: int = None,
+    offset: int = 0,
+) -> list:
+    query, params = _companies_filter("c.*, ua.interest_level, ua.notes", state, interest_level)
+    query += " ORDER BY c.filed_date DESC"
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+    return conn.execute(query, params).fetchall()
+
+
+def count_companies(conn: sqlite3.Connection, state: str = None, interest_level: str = None) -> int:
+    query, params = _companies_filter("COUNT(*)", state, interest_level)
+    return conn.execute(query, params).fetchone()[0]
+
+
+def _companies_filter(select: str, state: str, interest_level: str):
+    query = f"""
+        SELECT {select}
         FROM companies c
         LEFT JOIN user_annotations ua ON c.cik = ua.cik
         WHERE 1=1
@@ -126,8 +146,7 @@ def get_companies(conn: sqlite3.Connection, state: str = None, interest_level: s
         query += " AND ua.interest_level = 0"
     elif interest_level == "interested":
         query += " AND ua.interest_level >= 1"
-    query += " ORDER BY c.filed_date DESC"
-    return conn.execute(query, params).fetchall()
+    return query, params
 
 
 def upsert_annotation(conn: sqlite3.Connection, cik: str, interest_level: int | None = None) -> None:

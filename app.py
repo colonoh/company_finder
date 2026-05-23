@@ -27,14 +27,31 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+PAGE_SIZE = 20
+
+
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, state: str = None, interest_level: str = None):
+def index(request: Request, state: str = None, interest_level: str = None, page: int = 1):
+    if page < 1:
+        page = 1
+    offset = (page - 1) * PAGE_SIZE
     with db.get_connection() as conn:
-        companies = db.get_companies(conn, state=state, interest_level=interest_level)
+        companies = db.get_companies(
+            conn, state=state, interest_level=interest_level, limit=PAGE_SIZE, offset=offset
+        )
+        total = db.count_companies(conn, state=state, interest_level=interest_level)
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
     return templates.TemplateResponse(
         request,
         "index.html",
-        {"companies": companies, "state": state, "interest_level": interest_level},
+        {
+            "companies": companies,
+            "state": state,
+            "interest_level": interest_level,
+            "page": page,
+            "total_pages": total_pages,
+            "total": total,
+        },
     )
 
 
